@@ -16,6 +16,7 @@ contract StakingGTC is Ownable {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
   using Counters for Counters.Counter;
+
   Counters.Counter private _poolIds;
 
   // state
@@ -29,29 +30,32 @@ contract StakingGTC is Ownable {
   }
 
   // mappings
+  // track poolInfo from its id
   mapping(uint256 => PoolInfo) public poolInfo;
-  mapping(address => mapping(uint256 => PoolInfo)) public balanceInfo;
-
+  // track user balance for each pool they belong to
+  mapping(address => mapping(uint256 => PoolInfo)) public userPoolInfos;
 
   // events
   event Stake(address indexed user, uint256 amount, uint256 timestamp);
   event Unstake(address indexed user, uint256 amount,uint256 timestamp);
   event PoolCreated(uint256 poolId, address asset, uint256 initialBalance, uint256 timestamp);
 
+  // For now we are passing in the gtc address for testing and different networks
+  // On mainnet we will remove this parameter from the constructor
   constructor(address _gtcAddress) {
     gtcAddress = _gtcAddress;
 
+    // for testing, create a pool on construction with 0 balance
     createPool(gtcAddress, 0);
   }
 
   // get pool balance
-  function poolBalance(uint256 poolId) public returns(uint256) {
-    PoolInfo storage pool = poolInfo[poolId];
-    return pool.balance;
+  function poolBalance(uint256 poolId) public view returns(uint256) {
+    return poolInfo[poolId].balance;
   }
 
   // create pool
-  function createPool(address asset, uint256 amount) internal {
+  function createPool(address asset, uint256 amount) public returns(uint256) {
     _poolIds.increment();
     uint256 id = _poolIds.current();
 
@@ -60,9 +64,12 @@ contract StakingGTC is Ownable {
     pool.balance = amount;
     pool.poolid = id;
 
-    balanceInfo[msg.sender][id].balance = balanceInfo[msg.sender][id].balance.add(amount);
+    pool = userPoolInfos[msg.sender][id];
+
 
     emit PoolCreated(id, asset, amount, block.timestamp);
+
+    return id;
   }
 
 
@@ -78,10 +85,10 @@ contract StakingGTC is Ownable {
   // withdrawl/unstake
   function unstake(uint256 poolId) public {
     PoolInfo storage pool = poolInfo[poolId];
-    uint256 balance = balanceInfo[msg.sender][poolId].balance;
+    uint256 balance = userPoolInfos[msg.sender][poolId].balance;
 
     require(IERC20(pool.asset).balanceOf(address(this)) >= balance, "Cannot withdraw more that the contract holds ser");
-    balanceInfo[msg.sender][poolId].balance = balanceInfo[msg.sender][poolId].balance.sub(balance);
+    userPoolInfos[msg.sender][poolId].balance = userPoolInfos[msg.sender][poolId].balance.sub(balance);
 
     IERC20(pool.asset).transferFrom(address(this), msg.sender, balance);
 

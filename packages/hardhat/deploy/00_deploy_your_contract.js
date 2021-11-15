@@ -16,7 +16,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     GTC = await deploy("GTC", {
       from: deployer,
       // front-end address vvvvvvvvvvvvvvv replace with args: [admins[0]], for deploy
-      args: ["0x43aa5A6a8CB1Fec575583b7531b57bd79067309E"],
+      args: ["0x3f15B8c6F9939879Cb030D6dd935348E57109637"],
       log: true,
     });
   }
@@ -24,7 +24,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // deploy Staking Contract ~ any network
   await deploy("StakingGTC", {
     from: deployer,
-    args: ["0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F"],
+    args: [GTC.address],
     log: true,
   });
 
@@ -34,7 +34,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // log the GTC and StreamFactory addresses
   console.log({
     GTC: GTC.address,
-    streamFactory: StakeGTCContract.address,
+    StakingContract: StakeGTCContract.address,
   });
 
   // make sure were not on the local chain...
