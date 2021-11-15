@@ -54,6 +54,14 @@ contract StakingGTC is Ownable {
     return poolInfo[poolId].balance;
   }
 
+  // get pool details
+  function poolDetails(uint256 poolId) public view returns(address, uint256) {
+    return (
+      poolInfo[poolId].asset,
+      poolInfo[poolId].balance
+    );
+  }
+
   // create pool
   function createPool(address asset, uint256 amount) public returns(uint256) {
     _poolIds.increment();
@@ -78,6 +86,10 @@ contract StakingGTC is Ownable {
     PoolInfo storage pool = poolInfo[poolId];
     pool.balance = pool.balance.add(amount);
 
+    IERC20(pool.asset).transferFrom(msg.sender, address(this), amount);
+
+    pool = userPoolInfos[msg.sender][poolId];
+
     emit Stake(msg.sender, amount, block.timestamp);
   }
 
@@ -85,14 +97,15 @@ contract StakingGTC is Ownable {
   // withdrawl/unstake
   function unstake(uint256 poolId) public {
     PoolInfo storage pool = poolInfo[poolId];
-    uint256 balance = userPoolInfos[msg.sender][poolId].balance;
 
-    require(IERC20(pool.asset).balanceOf(address(this)) >= balance, "Cannot withdraw more that the contract holds ser");
-    userPoolInfos[msg.sender][poolId].balance = userPoolInfos[msg.sender][poolId].balance.sub(balance);
+    require(IERC20(pool.asset).balanceOf(address(this)) >= pool.balance, "Cannot withdraw more that the contract holds ser");
+    pool.balance = pool.balance.sub(IERC20(pool.asset).balanceOf(address(this)));
+    IERC20(pool.asset).transfer(msg.sender, pool.balance);
+    
 
-    IERC20(pool.asset).transferFrom(address(this), msg.sender, balance);
+    pool = userPoolInfos[msg.sender][poolId];
 
-    emit Unstake(msg.sender, balance, block.timestamp);
+    emit Unstake(msg.sender, pool.balance, block.timestamp);
   }
 
   
