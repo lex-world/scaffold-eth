@@ -74,7 +74,6 @@ contract StakingGTC is Ownable {
 
     pool = userPoolInfos[msg.sender][id];
 
-
     emit PoolCreated(id, asset, amount, block.timestamp);
 
     return id;
@@ -86,8 +85,7 @@ contract StakingGTC is Ownable {
     PoolInfo storage pool = poolInfo[poolId];
     pool.balance = pool.balance.add(amount);
 
-    IERC20(pool.asset).transferFrom(msg.sender, address(this), amount);
-
+    IERC20(pool.asset).safeTransferFrom(msg.sender, address(this), amount);
     pool = userPoolInfos[msg.sender][poolId];
 
     emit Stake(msg.sender, amount, block.timestamp);
@@ -100,7 +98,7 @@ contract StakingGTC is Ownable {
 
     require(IERC20(pool.asset).balanceOf(address(this)) >= pool.balance, "Cannot withdraw more that the contract holds ser");
     pool.balance = pool.balance.sub(IERC20(pool.asset).balanceOf(address(this)));
-    IERC20(pool.asset).transfer(msg.sender, pool.balance);
+    IERC20(pool.asset).safeTransfer(msg.sender, pool.balance);
     
 
     pool = userPoolInfos[msg.sender][poolId];
