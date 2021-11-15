@@ -4,40 +4,37 @@ const { solidity } = require("ethereum-waffle");
 
 use(solidity);
 
-describe("My Dapp", function () {
-  let myContract;
+describe("GTC Staking", function () {
+  let stakingGTC;
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
   before((done) => {
     setTimeout(done, 2000);
   });
 
-  describe("YourContract", function () {
-    it("Should deploy YourContract", async function () {
-      const YourContract = await ethers.getContractFactory("YourContract");
+  describe("StakingGTC", function () {
+    it("Should deploy StakingGTC", async function () {
+      const StakingGTC = await ethers.getContractFactory("StakingGTC");
 
-      myContract = await YourContract.deploy();
+      stakingGTC = await StakingGTC.deploy();
     });
 
-    describe("setPurpose()", function () {
-      it("Should be able to set a new purpose", async function () {
-        const newPurpose = "Test Purpose";
-
-        await myContract.setPurpose(newPurpose);
-        expect(await myContract.purpose()).to.equal(newPurpose);
+    describe("stake()", function () {
+      it("Should be able to stake GTC tokens", async function () {
+        const gtcContract = ethers.getContract("GTC");
+        // await gtcContract.approve();
       });
 
-      // Uncomment the event and emit lines in YourContract.sol to make this test pass
-
-      /*it("Should emit a SetPurpose event ", async function () {
+      // Uncomment the event and emit lines in stakingGTC.sol to make this test pass
+      /* it("Should emit a SetPurpose event ", async function () {
         const [owner] = await ethers.getSigners();
 
         const newPurpose = "Another Test Purpose";
 
-        expect(await myContract.setPurpose(newPurpose)).to.
-          emit(myContract, "SetPurpose").
+        expect(await stakingGTC.setPurpose(newPurpose)).to.
+          emit(stakingGTC, "SetPurpose").
             withArgs(owner.address, newPurpose);
-      });*/
+      }); */
     });
   });
 });
